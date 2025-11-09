@@ -35,30 +35,34 @@ export default function QueuePage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white p-8">
+    <div className="min-h-screen bg-gray-900 text-white p-6 sm:p-8">
       <h1 className="text-3xl font-bold text-cyan-400 text-center mb-8">
         คิวงานของลูกค้า
       </h1>
 
+      {/* 🧱 ตารางเลื่อนบนมือถือ */}
       <div className="overflow-x-auto">
-        <table className="w-full border-collapse bg-gray-800 rounded-xl overflow-hidden">
+        <table className="min-w-full border-collapse bg-gray-800 rounded-xl overflow-hidden text-sm sm:text-base">
           <thead className="bg-gray-700 text-cyan-400">
             <tr>
-              <th className="p-3 text-left">ชื่อลูกค้า</th>
-              <th className="p-3 text-left">รายละเอียด</th>
-              <th className="p-3 text-left">วันรับงาน</th>
-              <th className="p-3 text-left">กำหนดส่ง</th>
-              <th className="p-3 text-left">สถานะ</th>
+              <th className="p-3 text-left whitespace-nowrap">ชื่อลูกค้า</th>
+              <th className="p-3 text-left whitespace-nowrap">รายละเอียด</th>
+              <th className="p-3 text-left whitespace-nowrap">วันรับงาน</th>
+              <th className="p-3 text-left whitespace-nowrap">กำหนดส่ง</th>
+              <th className="p-3 text-left whitespace-nowrap">สถานะ</th>
             </tr>
           </thead>
           <tbody>
             {queueList.map((q) => (
-              <tr key={q.id} className="border-t border-gray-700 hover:bg-gray-700">
-                <td className="p-3">{q.customer}</td>
+              <tr
+                key={q.id}
+                className="border-t border-gray-700 hover:bg-gray-700 transition"
+              >
+                <td className="p-3 whitespace-nowrap">{q.customer}</td>
                 <td className="p-3">{q.detail}</td>
-                <td className="p-3">{q.startDate}</td>
-                <td className="p-3">{q.endDate}</td>
-                <td className="p-3">
+                <td className="p-3 whitespace-nowrap">{q.startDate}</td>
+                <td className="p-3 whitespace-nowrap">{q.endDate}</td>
+                <td className="p-3 whitespace-nowrap">
                   <span
                     className={`px-3 py-1 rounded-full text-sm font-semibold ${getStatusColor(
                       q.status
@@ -72,7 +76,10 @@ export default function QueuePage() {
 
             {queueList.length === 0 && (
               <tr>
-                <td colSpan="5" className="text-center p-6 text-gray-400">
+                <td
+                  colSpan="5"
+                  className="text-center p-6 text-gray-400 text-sm sm:text-base"
+                >
                   ยังไม่มีคิวในระบบ
                 </td>
               </tr>
@@ -80,6 +87,11 @@ export default function QueuePage() {
           </tbody>
         </table>
       </div>
+
+      {/* 📱 แสดงข้อความเล็กสำหรับมือถือ */}
+      <p className="text-center text-gray-500 mt-4 text-xs sm:hidden">
+        * สามารถเลื่อนตารางได้
+      </p>
     </div>
   );
 }
