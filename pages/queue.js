@@ -7,7 +7,8 @@ export default function QueuePage() {
   const [queueList, setQueueList] = useState([]);
 
   useEffect(() => {
-    const q = query(collection(db, "queue"), orderBy("createdAt", "desc"));
+    // ✅ เรียงตามเลขคิวให้น้อย → มาก ถ้ามี, ถ้าไม่มีจะใช้ createdAt
+    const q = query(collection(db, "queue"), orderBy("queueNumber", "asc"));
     const unsub = onSnapshot(q, (snap) => {
       const data = snap.docs.map((doc) => ({
         id: doc.id,
@@ -18,7 +19,7 @@ export default function QueuePage() {
     return () => unsub();
   }, []);
 
-  // 🟢 ฟังก์ชันเลือกสีตามสถานะ
+  // 🟢 สีตามสถานะ
   const getStatusColor = (status) => {
     switch (status) {
       case "กำลังทำ":
@@ -45,6 +46,7 @@ export default function QueuePage() {
         <table className="min-w-full border-collapse bg-gray-800 rounded-xl overflow-hidden text-sm sm:text-base">
           <thead className="bg-gray-700 text-cyan-400">
             <tr>
+              <th className="p-3 text-left whitespace-nowrap w-20">คิวที่</th>
               <th className="p-3 text-left whitespace-nowrap">ชื่อลูกค้า</th>
               <th className="p-3 text-left whitespace-nowrap">รายละเอียด</th>
               <th className="p-3 text-left whitespace-nowrap">วันรับงาน</th>
@@ -53,11 +55,15 @@ export default function QueuePage() {
             </tr>
           </thead>
           <tbody>
-            {queueList.map((q) => (
+            {queueList.map((q, index) => (
               <tr
                 key={q.id}
                 className="border-t border-gray-700 hover:bg-gray-700 transition"
               >
+                {/* 🔢 แสดงคิวอัตโนมัติถ้าไม่มีในฐานข้อมูล */}
+                <td className="p-3 text-center font-semibold text-cyan-300">
+                  {q.queueNumber || index + 1}
+                </td>
                 <td className="p-3 whitespace-nowrap">{q.customer}</td>
                 <td className="p-3">{q.detail}</td>
                 <td className="p-3 whitespace-nowrap">{q.startDate}</td>
@@ -77,7 +83,7 @@ export default function QueuePage() {
             {queueList.length === 0 && (
               <tr>
                 <td
-                  colSpan="5"
+                  colSpan="6"
                   className="text-center p-6 text-gray-400 text-sm sm:text-base"
                 >
                   ยังไม่มีคิวในระบบ

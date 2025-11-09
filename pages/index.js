@@ -13,6 +13,8 @@ export default function Home() {
 
         <p className="text-center max-w-2xl text-gray-300 fade-in-delay-1">
           ยินดีต้อนรับสู่เว็บไซต์ของผมครับ เป็นช่องทางสำหรับโชว์ผลงานและติดตามคิวของตนเองได้เลยครับ :D
+
+          รับทำแมพทุกประเภทนะครับ สามารถทักมาติดต่อสอบถามได้เลย ราคาเริ่มต้นอยู่ที่ 30 บาทครับ ราคาจะขึ้นอยู่กับความยากง่ายของงานครับ
         </p>
 
         <h2 className="text-2xl font-semibold mt-10 text-cyan-300 fade-in-delay-2">

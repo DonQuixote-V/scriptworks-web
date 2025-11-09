@@ -1,4 +1,3 @@
-// pages/admin/queue.js
 import { useState, useEffect } from "react";
 import {
   collection,
@@ -19,11 +18,12 @@ export default function AdminQueue() {
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [status, setStatus] = useState("กำลังทำ");
+  const [queueNumber, setQueueNumber] = useState("");
   const [queueList, setQueueList] = useState([]);
 
-  // ดึงข้อมูลจาก Firestore
+  // ✅ ดึงข้อมูลจาก Firestore
   useEffect(() => {
-    const q = query(collection(db, "queue"), orderBy("createdAt", "desc"));
+    const q = query(collection(db, "queue"), orderBy("queueNumber", "asc"));
     const unsub = onSnapshot(q, (snapshot) => {
       const data = snapshot.docs.map((doc) => ({
         id: doc.id,
@@ -34,14 +34,26 @@ export default function AdminQueue() {
     return () => unsub();
   }, []);
 
-  // เพิ่มคิวใหม่
+  // ✅ หาคิวล่าสุดเพื่อตั้งค่า auto
+  const getNextQueueNumber = () => {
+    if (queueList.length === 0) return 1;
+    const maxNum = Math.max(
+      ...queueList.map((q) => parseInt(q.queueNumber || 0, 10))
+    );
+    return maxNum + 1;
+  };
+
+  // ✅ เพิ่มคิวใหม่
   const addQueue = async () => {
     if (!customer || !detail || !startDate || !endDate) {
       alert("กรุณากรอกข้อมูลให้ครบก่อนเพิ่มคิว!");
       return;
     }
 
+    const finalQueueNumber = queueNumber.trim() || getNextQueueNumber();
+
     await addDoc(collection(db, "queue"), {
+      queueNumber: finalQueueNumber,
       customer,
       detail,
       startDate,
@@ -50,6 +62,8 @@ export default function AdminQueue() {
       createdAt: serverTimestamp(),
     });
 
+    alert(`เพิ่มคิวที่ ${finalQueueNumber} สำเร็จ!`);
+    setQueueNumber("");
     setCustomer("");
     setDetail("");
     setStartDate("");
@@ -57,16 +71,22 @@ export default function AdminQueue() {
     setStatus("กำลังทำ");
   };
 
-  // ลบคิว
+  // ✅ ลบคิว
   const deleteQueue = async (id) => {
     if (confirm("แน่ใจหรือไม่ว่าต้องการลบคิวนี้?")) {
       await deleteDoc(doc(db, "queue", id));
     }
   };
 
-  // 🔹 อัปเดตสถานะใน Firestore
+  // ✅ อัปเดตสถานะ
   const updateStatus = async (id, newStatus) => {
     await updateDoc(doc(db, "queue", id), { status: newStatus });
+  };
+
+  // ✅ อัปเดตหมายเลขคิว (แก้ไขสดได้เลย)
+  const updateQueueNumber = async (id, newNumber) => {
+    if (!newNumber.trim()) return;
+    await updateDoc(doc(db, "queue", id), { queueNumber: newNumber });
   };
 
   return (
@@ -77,12 +97,22 @@ export default function AdminQueue() {
       <div className="bg-gray-800 p-6 rounded-xl shadow-md space-y-4 mb-10">
         <div className="grid grid-cols-2 gap-4">
           <input
+            type="number"
+            placeholder="คิวที่ (ถ้าไม่ใส่จะสร้างให้อัตโนมัติ)"
+            value={queueNumber}
+            onChange={(e) => setQueueNumber(e.target.value)}
+            className="p-3 bg-gray-700 rounded focus:outline-none focus:ring-2 focus:ring-cyan-500"
+          />
+          <input
             type="text"
             placeholder="ชื่อลูกค้า"
             value={customer}
             onChange={(e) => setCustomer(e.target.value)}
             className="p-3 bg-gray-700 rounded focus:outline-none focus:ring-2 focus:ring-cyan-500"
           />
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
           <input
             type="text"
             placeholder="รายละเอียดงาน"
@@ -90,6 +120,16 @@ export default function AdminQueue() {
             onChange={(e) => setDetail(e.target.value)}
             className="p-3 bg-gray-700 rounded focus:outline-none focus:ring-2 focus:ring-cyan-500"
           />
+          <select
+            value={status}
+            onChange={(e) => setStatus(e.target.value)}
+            className="w-full p-3 bg-gray-700 rounded focus:outline-none focus:ring-2 focus:ring-cyan-500"
+          >
+            <option>กำลังทำ</option>
+            <option>รอติดต่อ</option>
+            <option>เสร็จแล้ว</option>
+            <option>ส่งมอบแล้ว</option>
+          </select>
         </div>
 
         <div className="grid grid-cols-2 gap-4">
@@ -113,17 +153,6 @@ export default function AdminQueue() {
           </div>
         </div>
 
-        <select
-          value={status}
-          onChange={(e) => setStatus(e.target.value)}
-          className="w-full p-3 bg-gray-700 rounded focus:outline-none focus:ring-2 focus:ring-cyan-500"
-        >
-          <option>กำลังทำ</option>
-          <option>รอติดต่อ</option>
-          <option>เสร็จแล้ว</option>
-          <option>ส่งมอบแล้ว</option>
-        </select>
-
         <button
           onClick={addQueue}
           className="bg-cyan-500 hover:bg-cyan-600 transition px-6 py-3 rounded text-black font-semibold"
@@ -136,6 +165,7 @@ export default function AdminQueue() {
       <table className="w-full border-collapse bg-gray-800 rounded-xl overflow-hidden">
         <thead className="bg-gray-700 text-cyan-400">
           <tr>
+            <th className="p-3 text-left w-16">คิวที่</th>
             <th className="p-3 text-left">ชื่อลูกค้า</th>
             <th className="p-3 text-left">รายละเอียด</th>
             <th className="p-3 text-left">วันรับงาน</th>
@@ -147,6 +177,14 @@ export default function AdminQueue() {
         <tbody>
           {queueList.map((q) => (
             <tr key={q.id} className="border-t border-gray-700 hover:bg-gray-700">
+              <td className="p-3">
+                <input
+                  type="number"
+                  defaultValue={q.queueNumber}
+                  onBlur={(e) => updateQueueNumber(q.id, e.target.value)}
+                  className="w-16 p-1 text-center bg-gray-700 rounded focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                />
+              </td>
               <td className="p-3">{q.customer}</td>
               <td className="p-3">{q.detail}</td>
               <td className="p-3">{q.startDate}</td>
@@ -176,7 +214,7 @@ export default function AdminQueue() {
 
           {queueList.length === 0 && (
             <tr>
-              <td colSpan="6" className="text-center p-6 text-gray-400">
+              <td colSpan="7" className="text-center p-6 text-gray-400">
                 ยังไม่มีข้อมูลคิว
               </td>
             </tr>
