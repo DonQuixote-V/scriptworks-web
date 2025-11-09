@@ -6,6 +6,8 @@ import Footer from "../components/Footer";
 import { AnimatePresence, motion } from "framer-motion";
 import { useRouter } from "next/router";
 import Head from "next/head";
+import { Analytics } from "@vercel/analytics/next";
+
 
 export default function MyApp({ Component, pageProps }) {
   const router = useRouter();
@@ -43,6 +45,7 @@ export default function MyApp({ Component, pageProps }) {
 
       {/* ❌ ไม่มี Footer ในหน้า admin */}
       {!isAdminPage && <Footer />}
+      <Analytics />
     </>
   );
 }
